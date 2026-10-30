@@ -1,8 +1,10 @@
+
 """
-GameEngine: manages balloons, spawning, clicks, scoring and lives.
+GameEngine: manages balloons, scoring, lives and timer.
 """
 
 import random
+import pygame
 
 from game.balloon import Balloon
 from game.click_detection import check_pop
@@ -10,14 +12,20 @@ from game.renderer import WIDTH, HEIGHT
 
 SPAWN_INTERVAL_FRAMES = 45
 STARTING_LIVES = 3
+GAME_DURATION = 30
 
 
 class GameEngine:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.balloons = []
         self.frames_until_spawn = 0
         self.score = 0
         self.lives = STARTING_LIVES
+        self.time_left = GAME_DURATION
+        self.start_ticks = pygame.time.get_ticks()
         self.game_over = False
 
     def _spawn_balloon(self):
@@ -58,6 +66,14 @@ class GameEngine:
         if self.game_over:
             return
 
+        elapsed = (pygame.time.get_ticks() - self.start_ticks) // 1000
+        self.time_left = max(0, GAME_DURATION - elapsed)
+
+        if self.time_left <= 0:
+            self.game_over = True
+            self.balloons.clear()
+            return
+
         self.frames_until_spawn -= 1
 
         if self.frames_until_spawn <= 0:
@@ -86,12 +102,19 @@ class GameEngine:
         from game import renderer
 
         renderer.draw_scene(surface, self.balloons)
+
         renderer.draw_text(
             surface, font, f"Score: {self.score}", (10, 10)
         )
         renderer.draw_text(
             surface, font, f"Lives: {self.lives}", (10, 40)
         )
+        renderer.draw_text(
+            surface, font, f"Time: {self.time_left}", (10, 70)
+        )
 
         if self.game_over:
-            renderer.draw_banner(surface, font, "GAME OVER!")
+            renderer.draw_banner(
+                surface, font,
+                f"GAME OVER! Final Score: {self.score} - Press R to Restart"
+            )
