@@ -5,7 +5,8 @@ consistent exceptions rather than leaking incidental TypeError/ValueError errors
 """
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Optional
+import math
+from typing import Any, List
 
 
 def parse_int_list(value: Any) -> List[int]:
@@ -42,15 +43,22 @@ def calculate_average(values: Any) -> float:
     if not items:
         raise ValueError("at least one value is required")
 
-    total = 0.0
+    numbers = []
     for index, item in enumerate(items):
         if isinstance(item, bool) or not isinstance(item, (int, float)):
             raise TypeError(f"value at position {index} must be numeric")
-        number = float(item)
-        if number != number or number in (float("inf"), float("-inf")):
+        try:
+            number = float(item)
+        except OverflowError as exc:
+            raise ValueError(f"value at position {index} is outside the supported numeric range") from exc
+        if not math.isfinite(number):
             raise ValueError(f"value at position {index} must be finite")
-        total += number
-    return total / len(items)
+        numbers.append(number)
+    # Divide before summing to reduce overflow risk for large finite values.
+    try:
+        return math.fsum(number / len(numbers) for number in numbers)
+    except OverflowError as exc:
+        raise ValueError("average is outside the supported numeric range") from exc
 
 
 def normalize_username(value: Any) -> str:
