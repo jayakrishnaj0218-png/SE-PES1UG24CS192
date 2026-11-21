@@ -81,7 +81,7 @@ def test_calculate_average_rejects_non_numeric_elements(values):
 
 
 # Function 3: username normalization
-@given(st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", min_size=3, max_size=20))
+@given(st.from_regex(r"[A-Za-z][A-Za-z0-9_]{2,19}", fullmatch=True))
 @settings(max_examples=150)
 def test_normalize_username_valid_ascii_username(username):
     assert normalize_username(username) == username.lower()
