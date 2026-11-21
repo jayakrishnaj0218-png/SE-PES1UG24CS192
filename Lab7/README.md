@@ -23,7 +23,7 @@ Run these commands from this directory.
 1. Run the processor demonstration:
    ```bash
    python processor.py
-   ``
+   ```
 2. Run the property tests:
    ```bash
    python -m pytest -v test_processor.py
